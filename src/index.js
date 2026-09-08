@@ -59,16 +59,4 @@ export default {
     }
 };
 
-export { ListingRoom };            });
-        }
-        
-        // Health check
-        return new Response(JSON.stringify({
-            status: 'alive',
-            websocket: 'wss://duel-finder.YOUR_SUBDOMAIN.workers.dev/ws',
-            api: 'https://duel-finder.YOUR_SUBDOMAIN.workers.dev/api/online'
-        }), {
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
-};
+export { ListingRoom };
