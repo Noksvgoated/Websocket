@@ -1,40 +1,65 @@
+import { ListingRoom } from './listing-room';
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
         
-        // API endpoint
+        // API endpoint (protected)
         if (url.pathname === '/api/online') {
+            const key = url.searchParams.get('key');
+            if (key !== env.SHOPIFY_SECRET_KEY) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    error: 'Invalid secret key'
+                }), { 
+                    status: 401, 
+                    headers: { 'Content-Type': 'application/json' } 
+                });
+            }
+            
             return new Response(JSON.stringify({
                 success: true,
                 count: 0,
-                duelists: [],
                 timestamp: Date.now()
-            }), {
-                headers: { 'Content-Type': 'application/json' }
+            }), { 
+                headers: { 'Content-Type': 'application/json' } 
             });
         }
         
-        // WebSocket endpoint
+        // WebSocket endpoint (protected)
         if (url.pathname === '/ws') {
-            const pair = new WebSocketPair();
-            const [client, server] = Object.values(pair);
+            const upgradeHeader = request.headers.get('Upgrade');
+            if (upgradeHeader !== 'websocket') {
+                return new Response('Expected WebSocket', { status: 426 });
+            }
             
-            server.accept();
+            const key = url.searchParams.get('key');
+            if (key !== env.SHOPIFY_SECRET_KEY) {
+                return new Response(JSON.stringify({
+                    success: false,
+                    error: 'Invalid secret key'
+                }), { 
+                    status: 401, 
+                    headers: { 'Content-Type': 'application/json' } 
+                });
+            }
             
-            server.send(JSON.stringify({
-                type: 'welcome',
-                message: 'Connected to duel finder!',
-                timestamp: Date.now()
-            }));
-            
-            server.addEventListener('message', (event) => {
-                server.send(event.data);
-            });
-            
-            return new Response(null, {
-                status: 101,
-                webSocket: client
-            });
+            const id = env.LISTING_ROOM.idFromName('global-listing-room');
+            const room = env.LISTING_ROOM.get(id);
+            return room.fetch(request);
+        }
+        
+        // Health check (public)
+        return new Response(JSON.stringify({
+            status: 'alive',
+            protected: true
+        }), { 
+            headers: { 'Content-Type': 'application/json' } 
+        });
+    }
+};
+
+export { ListingRoom };            });
         }
         
         // Health check
