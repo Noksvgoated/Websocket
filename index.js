@@ -1,3 +1,5 @@
+import { ListingRoom } from './listing-room';
+
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -18,25 +20,9 @@ export default {
                 return new Response('Expected WebSocket', { status: 426 });
             }
             
-            const pair = new WebSocketPair();
-            const [client, server] = Object.values(pair);
-            
-            server.accept();
-            
-            server.send(JSON.stringify({
-                type: 'welcome',
-                message: 'Connected!',
-                timestamp: Date.now()
-            }));
-            
-            server.addEventListener('message', (event) => {
-                server.send(event.data);
-            });
-            
-            return new Response(null, {
-                status: 101,
-                webSocket: client
-            });
+            const id = env.LISTING_ROOM.idFromName('global-room');
+            const room = env.LISTING_ROOM.get(id);
+            return room.fetch(request);
         }
         
         return new Response(JSON.stringify({
@@ -46,3 +32,5 @@ export default {
         });
     }
 };
+
+export { ListingRoom };
