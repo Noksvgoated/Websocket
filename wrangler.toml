@@ -1,4 +1,4 @@
-name = "duel-finder-by-shopify"
+name = "websocket"
 main = "index.js"
 compatibility_date = "2024-09-01"
 
